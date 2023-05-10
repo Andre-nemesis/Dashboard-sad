@@ -66,21 +66,7 @@ if show_dataset_description:
 if show_dataset:
     st.subheader("Conjunto de Dados")
     st.dataframe(data)
-'''
-#grafico de pizza
-st.subheader("Distribuição de Idade dos alunos na Escola GP")
-gender_count = data['sex'].value_counts()
-fig, ax = plt.subplots()
-if graph1_type == "Pizza":
-    ax.pie(gender_count.values, labels=gender_count.index, autopct='%1.1f%%')
-    ax.set_title('Distribuição de Gênero dos Estudantes')
-else:
-    sns.barplot(x=gender_count.index, y=gender_count.values)
-    ax.set_xlabel('Gênero')
-    ax.set_ylabel('Número de Estudantes')
 
-st.pyplot(fig)
-'''
 #Questão 1
 #grafico de barras
 st.subheader("Distribuição de Idade dos alunos na Escola GP")
@@ -117,8 +103,13 @@ st.table(school_mode_address)
 #grafico de linnha
 st.subheader("Tempo de viagem dos alunos da escola GP")
 traveltime = data.loc[0:348,'traveltime'].value_counts()
-st.line_chart(traveltime)
-#legenda
+fig_traveltime, ax_traveltime = plt.subplots()
+sns.lineplot(x=traveltime.index, y=traveltime.values)
+ax_traveltime.set_xlabel('Quantidade de horas')
+ax_traveltime.set_ylabel('Quantidade de alunos')
+st.pyplot(fig_traveltime)
+
+#legendas
 st.subheader('Mediana do tempo de viagem dos alunos que estudam na escola GP')
 traveltime_date = data.loc[0:348,'traveltime'].mean()
 school_median_traveltime = {'GP':traveltime_date}
@@ -142,7 +133,7 @@ df_school_sup = pd.DataFrame(schoolsup)
 st.table(df_school_sup.std())
 
 #Questão 5
-#grafico
+#grafico de barras
 school_median_studytime_and_Pstatus = data.loc[0:348,['Pstatus','studytime']].value_counts()
 studytime = {'GP':school_median_studytime_and_Pstatus['A']}
 df_studytime = pd.DataFrame(studytime)
@@ -158,12 +149,11 @@ st.subheader('Média do tempo semanal de estudo dos alunos cujos pais estão sep
 st.table(df_studytime.mean())
 
 #Questão 6
-#grafico de barras
-st.subheader('Motivo que escolheram a escola MS')
+#grafico de pizza
 reason_count = data.loc[349:398,'reason'].value_counts()
 fig_reason, ax_reason = plt.subplots()
 ax_reason.pie(reason_count.values, labels=reason_count.index, autopct='%1.1f%%')
-ax_reason.set_title('Distribuição por zona Urbana e Rural')
+ax_reason.set_title('Motivo da escolha da escola MS')
 st.pyplot(fig_reason)
 
 #legenda
@@ -172,7 +162,7 @@ school_moda_reason = data.loc[349:398,'reason'].mode()
 st.table(school_moda_reason)
 
 #Questão 7
-#grafico barras
+#grafico de linhas
 st.subheader("Números de faltas")
 absences = data.loc[0:348,'absences'].value_counts()
 fig_absences, ax_absences = plt.subplots()
@@ -180,6 +170,7 @@ sns.lineplot(x=absences.index, y=absences.values)
 ax_absences.set_xlabel('Números de faltas')
 ax_absences.set_ylabel('Quantidade de faltas')
 st.pyplot(fig_absences)
+
 #legenda
 st.subheader('Mediana do número de faltas dos alunos que frequentam a escola GP')
 absences = data.loc[0:348,'absences'].median()
@@ -189,26 +180,25 @@ st.table(school_median_absences)
 #Questão 8
 #grafico barras
 st.subheader("Saúde dos alunos que frequentam atividades extracurriculares")
-health = data.loc[349:389,'activities'].value_counts()
-health_std = data.loc[349:398,'health'].value_counts()
-school_health = {'Quality health':health}
+school_health_activities = data.loc[349:398,['health','activities']].value_counts()
 
 fig_health, ax_health = plt.subplots()
-sns.barplot(x=health_std, y=health)
-ax_health.set_xlabel('Números de faltas')
-ax_health.set_ylabel('Quantidade de faltas')
-#aparececr números emcima das barras
+sns.barplot(data=data,x='activities',y='health',hue='school')
+ax_health.set_xlabel('Realiza Atividade Extracurricular')
+ax_health.set_ylabel('Qualidade da Sáude')
+#aparecer números emcima das barras
 for i in ax_health.containers:
     ax_health.bar_label(i,)
 st.pyplot(fig_health)
 
 #legenda
 st.subheader('Desvio padrão do nível de saúde dos alunos que frequentam atividades extracurriculares na escola MS')
-school_health_std = {'Quality health':health_std.std()}
+school_health_std = school_health_activities
 st.table(school_health_std)
 
 #Questão 9
-#grafico de linha
+#grafico de barras
+st.subheader('Quantidade de alunos que realizaram atiidades extracurriculares da escola GP')
 activities = data.loc[0:348,'activities'].value_counts()
 fig_activities,ax_activities = plt.subplots()
 sns.barplot(x=activities.index,y=activities.values)
@@ -218,10 +208,6 @@ ax_activities.set_xlabel('Respostas')
 for i in ax_activities.containers:
     ax_activities.bar_label(i,)
 st.pyplot(fig_activities)
-#legenda
-st.subheader('Número de alunos da escola GP que fazem atividades extracurriculares')
-school_hours_activites = {'Hours Activities': activities['yes']}
-st.table(school_hours_activites)
 
 #Questão 10
 #grafico de linha
