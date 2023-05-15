@@ -3,6 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+#opções de viszualização do dataset
+st.sidebar.subheader("Selecione o que deseja exibir")
+show_dataset = st.sidebar.checkbox("Dados do Dataset")
+show_dataset_description = st.sidebar.checkbox("Descrição do Dataset")
+
 #seleção de gráficos
 gsheets_show_id = st.sidebar.radio("Selecione o Dataset", ("Matemática", "Português"))
 graph1_type = st.sidebar.selectbox("Gráfico 1: Selecione o tipo de gráfico", ("Barra", "Pizza", "Dispersão", "Histograma", "Boxplot"))
@@ -19,11 +24,6 @@ def load_data(sheets_url):
     return pd.read_csv(csv_url)
 
 data = load_data(gsheets_url)
-
-#opções de viszualização do dataset
-st.sidebar.subheader("Selecione o que deseja exibir")
-show_dataset = st.sidebar.checkbox("Dados do Dataset")
-show_dataset_description = st.sidebar.checkbox("Descrição do Dataset")
 
 if show_dataset_description:
     st.subheader("Descrição do Dataset")
@@ -83,7 +83,7 @@ st.pyplot(fig_age)
 #legenda
 st.subheader("Média de idade dos alunos na Escola GP")
 agge = data.loc[0:348,'age'].mean()
-school_mean_age = {'Media GP':agge}
+school_mean_age = {'Média de Idade':agge}
 st.table(school_mean_age)
 
 #Questão 2
@@ -112,41 +112,35 @@ st.pyplot(fig_traveltime)
 #legendas
 st.subheader('Mediana do tempo de viagem dos alunos que estudam na escola GP')
 traveltime_date = data.loc[0:348,'traveltime'].mean()
-school_median_traveltime = {'GP':traveltime_date}
+school_median_traveltime = {'Tempo de Viagem':traveltime_date}
 st.table(school_median_traveltime)
 
 #Questão 4
 #grafico de barras
-st.subheader('Idade dos alnos que possuem apoio educacional extra na escola MS')
-schoolsup = data.loc[349:398,['schoolsup','age']].value_counts()
+st.subheader('Média de idade dos alnos que possuem apoio educacional extra nas escolas')
+schoolsup = (data['school']=='MS')&(data['schoolsup']=='yes')&(data['age'])
+#age_schoolsup = data.loc[349:399,('schoolsup','age')].value_counts()
 fig_schoolsup,ax_schoolsup = plt.subplots()
-sns.barplot(data=data,x='school',y='age',hue='schoolsup')
-ax_schoolsup.set_xlabel('Apoio Educacional')
+sns.barplot(data=data,x='schoolsup',y='age',hue='school',estimator='mean')
+ax_schoolsup.set_xlabel('Possui apoio Educacional?')
 ax_schoolsup.set_ylabel('Idade')
 for i in ax_schoolsup.containers:
     ax_schoolsup.bar_label(i,)
 st.pyplot(fig_schoolsup)
 
-#legenda
-st.subheader('desvio padrão da idade dos alunos que têm apoio educacional extra na escola MS')
-df_school_sup = pd.DataFrame(schoolsup)
-st.table(df_school_sup.std())
-
 #Questão 5
+st.subheader('Média do tempo semanal de estudo dos alunos cujos pais estão separados nas escolas.')
+
 #grafico de barras
-school_median_studytime_and_Pstatus = data.loc[0:348,['Pstatus','studytime']].value_counts()
-studytime = {'GP':school_median_studytime_and_Pstatus['A']}
-df_studytime = pd.DataFrame(studytime)
 fig_studytime, ax_studytime = plt.subplots()
-sns.barplot(data=data,x='Pstatus',y='studytime',hue='school')
+#realizando a fatia de dados dentro do gráfico
+sns.barplot(data = data,x='Pstatus',y='studytime',hue='school',estimator='mean')   
 ax_studytime.set_xlabel('Tipo do Relacionamento Familiar')
 ax_studytime.set_ylabel('Tempo de Estudo')
+ax_studytime.set_title('A: Pais separados     T: Pais Juntos')
 for i in ax_studytime.containers:
     ax_studytime.bar_label(i,)
 st.pyplot(fig_studytime)
-#legenda
-st.subheader('Média do tempo semanal de estudo dos alunos cujos pais estão separados na escola GP')
-st.table(df_studytime.mean())
 
 #Questão 6
 #grafico de pizza
@@ -167,25 +161,31 @@ st.subheader("Números de faltas")
 absences = data.loc[0:348,'absences'].value_counts()
 fig_absences, ax_absences = plt.subplots()
 sns.lineplot(x=absences.index, y=absences.values)
-ax_absences.set_xlabel('Números de faltas')
-ax_absences.set_ylabel('Quantidade de faltas')
+ax_absences.set_xlabel('Quantidade de faltas')
+ax_absences.set_ylabel('Números de Alunos')
 st.pyplot(fig_absences)
 
 #legenda
 st.subheader('Mediana do número de faltas dos alunos que frequentam a escola GP')
 absences = data.loc[0:348,'absences'].median()
-school_median_absences= {'absences - GP':absences}
+school_median_absences= {'Faltas - GP':absences}
 st.table(school_median_absences)
 
 #Questão 8
-#grafico barras
-st.subheader("Saúde dos alunos que frequentam atividades extracurriculares")
-school_health_activities = data.loc[349:398,['health','activities']].value_counts()
+st.subheader("Média da saúde dos alunos que frequentam atividades extracurriculares")
 
+#separando fatia de dados
+mask = (data['school'] == 'MS') & (data['activities'] == 'yes')
+
+# Calculando o desvio padrão do nível de saúde
+std_health = data[mask]['health'].std()
+
+#grafico barras
 fig_health, ax_health = plt.subplots()
-sns.barplot(data=data,x='activities',y='health',hue='school')
+sns.barplot(data = data,x='activities',y='health',hue='school',estimator='mean')
 ax_health.set_xlabel('Realiza Atividade Extracurricular')
 ax_health.set_ylabel('Qualidade da Sáude')
+
 #aparecer números emcima das barras
 for i in ax_health.containers:
     ax_health.bar_label(i,)
@@ -193,8 +193,8 @@ st.pyplot(fig_health)
 
 #legenda
 st.subheader('Desvio padrão do nível de saúde dos alunos que frequentam atividades extracurriculares na escola MS')
-school_health_std = school_health_activities
-st.table(school_health_std)
+df_std_health = {'Desvio Padrão':std_health}
+st.table(df_std_health)
 
 #Questão 9
 #grafico de barras
@@ -223,3 +223,4 @@ st.subheader('Moda do consumo de álcool dos alunos da escola MS durante a seman
 dalc = data.loc[349:398,'Dalc'].mode()
 school_moda_dalc = {'Consume - MS':dalc}
 st.table(school_moda_dalc)
+
